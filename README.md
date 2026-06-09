@@ -27,7 +27,7 @@
 
   <br>
 
-  <img src="screenshots/dashboard.svg" width="900" alt="JARVIS Dashboard">
+  <img src="screenshots/dashboard.png" width="900" alt="JARVIS Dashboard">
 
   <br>
 </div>
@@ -133,16 +133,16 @@ It combines natural voice conversations with deep system automation, web tools, 
 <div align="center">
   <table>
     <tr>
-      <td><img src="screenshots/main.svg" width="400" alt="Main Dashboard"></td>
-      <td><img src="screenshots/chat.svg" width="400" alt="AI Chat"></td>
+      <td><img src="screenshots/main.png" width="400" alt="Main Dashboard"></td>
+      <td><img src="screenshots/chat.png" width="400" alt="AI Chat"></td>
     </tr>
     <tr>
       <td><b>Main Dashboard</b></td>
       <td><b>AI Chat Interface</b></td>
     </tr>
     <tr>
-      <td><img src="screenshots/voice.svg" width="400" alt="Voice Assistant"></td>
-      <td><img src="screenshots/dashboard.svg" width="400" alt="Dashboard"></td>
+      <td><img src="screenshots/voice.png" width="400" alt="Voice Assistant"></td>
+      <td><img src="screenshots/dashboard.png" width="400" alt="Dashboard"></td>
     </tr>
     <tr>
       <td><b>Voice Assistant</b></td>
