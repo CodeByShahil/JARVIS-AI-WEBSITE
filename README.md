@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="screenshots/main.svg" width="50" alt="JARVIS Logo">
+  <img src="screenshots/logo.svg" width="50" alt="JARVIS Logo">
   <h1>J.A.R.V.I.S AI Assistant</h1>
   <p><b>Just A Rather Very Intelligent System</b></p>
   <p><i>Your Personal AI-Powered Desktop Assistant for Windows</i></p>
