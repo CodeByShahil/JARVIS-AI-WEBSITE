@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J.A.R.V.I.S — Neural Interface Guide</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+        --cyan: #00f0ff;
+        --green: #00ff88;
+        --gold: #ffcc44;
+        --pink: #ff2277;
+        --purple: #8833ff;
+        --bg: #03060c;
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #020408; }
+    ::-webkit-scrollbar-thumb { background: #00f0ff55; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #00f0ffaa; }
+    html { scroll-behavior: smooth; }
+
+    /* ===== KEYFRAMES ===== */
+    @keyframes scan-down { 0% { top: -2px; } 100% { top: 100%; } }
+    @keyframes pulse-dot { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
+    @keyframes border-cycle { 0%,100% { border-color: rgba(0,240,255,.1); } 25% { border-color: rgba(0,255,136,.1); } 50% { border-color: rgba(255,204,68,.1); } 75% { border-color: rgba(136,51,255,.1); } }
+    @keyframes fade-up { from { opacity: 0; transform: translateY(35px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes glitch1 { 0%,90%,100% { transform: translate(0); } 92% { transform: translate(-3px,1px); } 94% { transform: translate(4px,-2px); } 96% { transform: translate(-2px,2px); } 98% { transform: translate(2px,-1px); } }
+    @keyframes glitch2 { 0%,90%,100% { transform: translate(0); opacity: .2; } 92% { transform: translate(3px,-1px); opacity: .15; } 94% { transform: translate(-4px,1px); opacity: .18; } 96% { transform: translate(2px,2px); opacity: .12; } 98% { transform: translate(-2px,-1px); opacity: .16; } }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    @keyframes shimmer-slide { 0% { left: -100%; } 100% { left: 200%; } }
+    @keyframes neon-pulse { 0%,100% { text-shadow: 0 0 10px rgba(0,240,255,.3),0 0 30px rgba(0,240,255,.1); } 50% { text-shadow: 0 0 20px rgba(0,240,255,.5),0 0 50px rgba(0,240,255,.2),0 0 80px rgba(0,240,255,.08); } }
+    @keyframes eq-bar { 0%,100% { height: 3px; } 25% { height: 20px; } 50% { height: 7px; } 75% { height: 16px; } }
+    @keyframes pulse-ring { 0% { transform: scale(.8); opacity: .4; } 100% { transform: scale(3); opacity: 0; } }
+    @keyframes shake { 0%,100% { transform: translate(0); } 10% { transform: translate(-4px,2px); } 20% { transform: translate(3px,-3px); } 30% { transform: translate(-2px,4px); } 40% { transform: translate(5px,-1px); } 50% { transform: translate(-3px,-2px); } 60% { transform: translate(2px,3px); } 70% { transform: translate(-5px,1px); } 80% { transform: translate(4px,-4px); } 90% { transform: translate(-1px,2px); } }
+    @keyframes spin3d { 0% { transform: rotateX(0deg) rotateY(0deg); } 100% { transform: rotateX(360deg) rotateY(360deg); } }
+    @keyframes hue-rotate { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+    @keyframes matrix-fall { 0% { transform: translateY(-100%); opacity: 1; } 100% { transform: translateY(100vh); opacity: 0; } }
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: #b0d0e0;
+        line-height: 1.7;
+        padding: 30px;
+        min-height: 100vh;
+        overflow-x: hidden;
+        position: relative;
+    }
+
+    /* CRT scanline beam */
+    .scan-beam {
+        position: fixed; left: 0; width: 100%; height: 2px;
+        background: linear-gradient(90deg, transparent, var(--cyan), var(--green), transparent);
+        z-index: 9999; pointer-events: none; opacity: .3;
+        animation: scan-down 6s linear infinite;
+    }
+
+    /* CRT overlay */
+    .crt {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,240,255,.005) 2px, rgba(0,240,255,.005) 4px);
+        pointer-events: none; z-index: 9998;
+    }
+
+    /* Grid */
+    body::before {
+        content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-image: linear-gradient(rgba(0,240,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,240,255,.03) 1px, transparent 1px);
+        background-size: 50px 50px; pointer-events: none; z-index: 0;
+    }
+
+    /* Hex overlay */
+    .hex-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52' viewBox='0 0 60 52'%3E%3Cpath d='M30 0l26 15v22l-26 15-26-15V15z' fill='none' stroke='%2300f0ff' stroke-width='.3' opacity='.04'/%3E%3C/svg%3E");
+        background-size: 60px 52px; pointer-events: none; z-index: 0; opacity: .5;
+    }
+
+    /* ===== CANVAS LAYERS ===== */
+    #aurora-canvas {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 0; pointer-events: none; opacity: .55;
+    }
+    #particle-canvas {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 0; pointer-events: none; opacity: .6;
+    }
+
+    /* ===== CURSOR GLOW ===== */
+    #cursor-glow {
+        position: fixed; width: 400px; height: 400px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(0,240,255,.04) 0%, rgba(0,255,136,.02) 30%, transparent 70%);
+        pointer-events: none; z-index: 0;
+        transform: translate(-50%, -50%);
+        transition: opacity .3s;
+    }
+
+    /* ===== PULSE RING ===== */
+    .pulse-ring {
+        position: fixed; top: 50%; left: 50%;
+        width: 100px; height: 100px;
+        border-radius: 50%;
+        border: 1px solid rgba(0,240,255,.15);
+        pointer-events: none; z-index: 0;
+        transform: translate(-50%, -50%) scale(.8);
+        animation: pulse-ring 4s ease-out infinite;
+    }
+    .pulse-ring:nth-child(2) { animation-delay: 2s; }
+
+    /* ===== CORNER HUD ===== */
+    .c { position: fixed; pointer-events: none; z-index: 9997; opacity: .1; }
+    .c.tl { top: 8px; left: 8px; width: 50px; height: 50px; border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
+    .c.tr { top: 8px; right: 8px; width: 50px; height: 50px; border-top: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
+    .c.bl { bottom: 8px; left: 8px; width: 50px; height: 50px; border-bottom: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
+    .c.br { bottom: 8px; right: 8px; width: 50px; height: 50px; border-bottom: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
+    .t { position: fixed; pointer-events: none; z-index: 9997; opacity: .06; }
+    .t1 { top: 12px; left: 62px; width: 20px; height: 1px; background: var(--cyan); }
+    .t2 { top: 12px; right: 62px; width: 20px; height: 1px; background: var(--cyan); }
+    .t3 { bottom: 12px; left: 62px; width: 20px; height: 1px; background: var(--cyan); }
+    .t4 { bottom: 12px; right: 62px; width: 20px; height: 1px; background: var(--cyan); }
+    .t5 { top: 62px; left: 12px; width: 1px; height: 20px; background: var(--cyan); }
+    .t6 { bottom: 62px; left: 12px; width: 1px; height: 20px; background: var(--cyan); }
+    .t7 { top: 62px; right: 12px; width: 1px; height: 20px; background: var(--cyan); }
+    .t8 { bottom: 62px; right: 12px; width: 1px; height: 20px; background: var(--cyan); }
+
+    /* Radar */
+    .radar {
+        position: fixed; bottom: 30px; right: 30px; width: 70px; height: 70px;
+        border-radius: 50%; border: 1px solid rgba(0,240,255,.06);
+        pointer-events: none; z-index: 9997;
+    }
+    .radar::before {
+        content: ''; position: absolute; top: 50%; left: 50%;
+        width: 2px; height: 52%;
+        background: linear-gradient(to bottom, var(--cyan), transparent);
+        transform-origin: top center;
+        animation: radar-sweep 3s linear infinite;
+    }
+    .radar::after {
+        content: ''; position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%; height: 100%; border-radius: 50%;
+        background: radial-gradient(circle, rgba(0,240,255,.03) 0%, transparent 70%);
+        animation: pulse-dot 3s infinite;
+    }
+    @keyframes radar-sweep { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Equalizer */
+    .eq {
+        position: fixed; bottom: 30px; left: 30px;
+        display: flex; gap: 3px; align-items: flex-end;
+        pointer-events: none; z-index: 9997; opacity: .08;
+    }
+    .eq b {
+        display: block; width: 3px;
+        background: linear-gradient(to top, var(--cyan), var(--green));
+        border-radius: 2px 2px 0 0;
+        animation: eq-bar 1.4s ease-in-out infinite;
+    }
+    .eq b:nth-child(1) { height: 6px; animation-delay: 0s; }
+    .eq b:nth-child(2) { height: 14px; animation-delay: .15s; }
+    .eq b:nth-child(3) { height: 5px; animation-delay: .3s; }
+    .eq b:nth-child(4) { height: 20px; animation-delay: .45s; }
+    .eq b:nth-child(5) { height: 8px; animation-delay: .6s; }
+    .eq b:nth-child(6) { height: 16px; animation-delay: .75s; }
+    .eq b:nth-child(7) { height: 6px; animation-delay: .9s; }
+    .eq b:nth-child(8) { height: 22px; animation-delay: 1.05s; }
+
+    /* Ripple container */
+    #ripples {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none; z-index: 9996;
+    }
+    .ripple-el {
+        position: absolute; border-radius: 50%;
+        border: 1px solid rgba(0,240,255,.12);
+        animation: ripple-grow .7s ease-out forwards;
+    }
+    @keyframes ripple-grow { 0% { width: 0; height: 0; opacity: .6; } 100% { width: 250px; height: 250px; opacity: 0; } }
+
+    /* ===== CONTAINER ===== */
+    .container { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+
+    /* ===== HEADER ===== */
+    .header {
+        text-align: center; margin-bottom: 30px; position: relative;
+        padding: 60px 20px 28px;
+    }
+    .header::after {
+        content: ''; position: absolute; bottom: 0; left: 5%; width: 90%; height: 1px;
+        background: linear-gradient(90deg, transparent, var(--cyan), var(--green), var(--gold), var(--pink), transparent);
+        opacity: .3;
+    }
+
+    /* 3D CSS Cube */
+    .cube-wrap {
+        position: absolute; top: 50%; left: 50%;
+        width: 0; height: 0;
+        perspective: 800px;
+        pointer-events: none;
+        z-index: -1;
+    }
+    .cube {
+        position: absolute;
+        width: 120px; height: 120px;
+        transform-style: preserve-3d;
+        animation: spin3d 20s linear infinite;
+        left: -60px; top: -60px;
+    }
+    .cube-face {
+        position: absolute;
+        width: 120px; height: 120px;
+        background: rgba(0,240,255,.02);
+        border: 1px solid rgba(0,240,255,.06);
+        box-shadow: inset 0 0 40px rgba(0,240,255,.03);
+        border-radius: 6px;
+    }
+    .cube-face:nth-child(1) { transform: translateZ(60px); }
+    .cube-face:nth-child(2) { transform: rotateY(180deg) translateZ(60px); }
+    .cube-face:nth-child(3) { transform: rotateY(90deg) translateZ(60px); }
+    .cube-face:nth-child(4) { transform: rotateY(-90deg) translateZ(60px); }
+    .cube-face:nth-child(5) { transform: rotateX(90deg) translateZ(60px); }
+    .cube-face:nth-child(6) { transform: rotateX(-90deg) translateZ(60px); }
+    .cube-face:nth-child(7) {
+        transform: translateZ(60px);
+        background: radial-gradient(circle, rgba(0,240,255,.06), transparent);
+        border: none;
+        box-shadow: 0 0 60px rgba(0,240,255,.06);
+    }
+
+    h1 {
+        font-size: 4.4em; font-weight: 900; letter-spacing: 16px;
+        text-transform: uppercase; position: relative;
+        display: inline-block; margin-bottom: 8px;
+    }
+    h1 .g1 {
+        background: linear-gradient(135deg, var(--cyan) 0%, var(--green) 40%, var(--gold) 70%, var(--pink) 100%);
+        background-size: 200% auto;
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        filter: drop-shadow(0 0 60px rgba(0,240,255,.12));
+        display: block; animation: glitch1 6s infinite;
+        position: relative;
+    }
+    h1 .g2 {
+        position: absolute; top: 0; left: 0;
+        background: linear-gradient(135deg, var(--pink), var(--purple), var(--cyan));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        display: block; animation: glitch2 6s infinite;
+        clip-path: inset(0 0 45% 0);
+    }
+    h1 .g3 {
+        position: absolute; top: 0; left: 0;
+        background: linear-gradient(135deg, var(--gold), var(--pink), var(--green));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        display: block; animation: glitch2 6s infinite 3s;
+        clip-path: inset(55% 0 0 0);
+    }
+
+    /* Live clock */
+    .live-clock {
+        font-family: 'Consolas', monospace;
+        font-size: 1em; color: var(--cyan);
+        letter-spacing: 5px; margin-top: 4px;
+        opacity: .4;
+        animation: pulse-dot 2s infinite;
+    }
+    .live-clock span { color: var(--green); }
+
+    .subtitle {
+        color: #4a7a9a; font-size: .92em; letter-spacing: 6px;
+        font-weight: 300; text-transform: uppercase;
+    }
+    .subtitle span {
+        color: var(--cyan); font-weight: 500;
+        animation: neon-pulse 3s infinite;
+    }
+
+    .typing-wrap { margin: 8px auto 0; display: inline-block; }
+    .typing-line {
+        display: inline-block; overflow: hidden;
+        white-space: nowrap; border-right: 2px solid var(--cyan);
+        width: 0; font-size: .8em; color: #3a6a8a; letter-spacing: 3px;
+        font-family: 'Consolas', monospace;
+    }
+
+    .badge-row {
+        display: flex; flex-wrap: wrap; justify-content: center;
+        gap: 6px; margin-top: 16px;
+    }
+    .badge {
+        display: inline-block;
+        background: linear-gradient(135deg, rgba(0,240,255,.05), rgba(0,255,136,.02));
+        border: 1px solid rgba(0,240,255,.1);
+        border-radius: 20px; padding: 3px 16px;
+        font-size: .7em; font-weight: 600;
+        color: #5ab8d0; letter-spacing: 1.5px;
+        text-transform: uppercase; backdrop-filter: blur(4px);
+        transition: all .35s;
+    }
+    .badge:hover {
+        border-color: var(--cyan);
+        box-shadow: 0 0 30px rgba(0,240,255,.12);
+        transform: translateY(-3px) scale(1.03);
+    }
+
+    /* ===== TOC ===== */
+    .toc {
+        background: rgba(4,10,20,.85); backdrop-filter: blur(20px);
+        border: 1px solid var(--border-cyan);
+        border-radius: 18px; padding: 22px 28px;
+        margin-bottom: 26px;
+        animation: fade-up .7s ease-out .1s both;
+        box-shadow: 0 8px 50px rgba(0,0,0,.5);
+        position: relative; overflow: hidden;
+        border-color: rgba(0,240,255,.08);
+    }
+    .toc::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, transparent, var(--cyan), var(--green), transparent);
+        opacity: .3;
+    }
+    .toc::after {
+        content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0,240,255,.015), transparent);
+        animation: shimmer-slide 7s ease-in-out infinite;
+        pointer-events: none;
+    }
+    .toc h2 {
+        color: var(--cyan); margin-bottom: 14px;
+        font-size: .82em; font-weight: 600;
+        letter-spacing: 4px; text-transform: uppercase;
+        text-shadow: 0 0 25px rgba(0,240,255,.1);
+    }
+    .toc h2::before { content: '/// '; color: var(--green); opacity: .4; }
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 2px 18px; }
+    .toc-grid a {
+        color: #3a7a9a; text-decoration: none;
+        font-size: .84em; padding: 5px 8px;
+        display: block; border-radius: 4px;
+        transition: all .3s;
+        border-left: 2px solid transparent;
+        position: relative;
+    }
+    .toc-grid a::before { content: '> '; color: transparent; transition: all .3s; }
+    .toc-grid a:hover {
+        color: var(--cyan); background: rgba(0,240,255,.04);
+        border-left-color: var(--cyan);
+        padding-left: 22px;
+        text-shadow: 0 0 20px rgba(0,240,255,.1);
+    }
+    .toc-grid a:hover::before { color: var(--green); }
+
+    /* ===== SECTIONS ===== */
+    .section {
+        background: rgba(4,10,20,.85); backdrop-filter: blur(12px);
+        border: 1px solid rgba(0,240,255,.08);
+        border-radius: 18px; padding: 26px 30px;
+        margin-bottom: 22px;
+        opacity: 0;
+        transition: all .4s cubic-bezier(.25,.46,.45,.94);
+        box-shadow: 0 4px 25px rgba(0,0,0,.4);
+        position: relative; overflow: hidden;
+        perspective: 1000px;
+    }
+    .section.visible { opacity: 1; }
+    .section::before {
+        content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+        background: linear-gradient(180deg, var(--cyan), var(--green), var(--gold), transparent);
+        opacity: 0; transition: opacity .5s;
+    }
+    .section::after {
+        content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0,240,255,.01), transparent);
+        animation: shimmer-slide 10s ease-in-out infinite;
+        pointer-events: none;
+    }
+    .section:hover {
+        border-color: rgba(0,240,255,.2);
+        box-shadow: 0 12px 60px rgba(0,0,0,.5), 0 0 40px rgba(0,240,255,.04);
+    }
+    .section:hover::before { opacity: 1; }
+
+    .section h2 {
+        font-size: 1.1em; font-weight: 700;
+        letter-spacing: 2px; margin-bottom: 14px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(0,240,255,.08);
+        display: flex; align-items: center; gap: 10px;
+        transition: letter-spacing .3s;
+        min-height: 1.4em;
+    }
+    .section:hover h2 { letter-spacing: 3px; }
+    .section h2 .num {
+        font-size: .62em; color: var(--green); opacity: .35;
+        font-weight: 400; font-family: 'Consolas', monospace;
+    }
+    .section h2 .title-glow {
+        background: linear-gradient(90deg, var(--cyan), var(--green), var(--gold));
+        background-size: 200% auto;
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        animation: shimmer-text 4s linear infinite;
+    }
+    @keyframes shimmer-text { 0% { background-position: 0% center; } 100% { background-position: 200% center; } }
+
+    .section h2 .type-cursor {
+        display: inline-block;
+        width: 2px; height: 1em;
+        background: var(--cyan);
+        margin-left: 2px;
+        animation: blink .8s step-end infinite;
+        vertical-align: text-bottom;
+    }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+    .section h3 {
+        color: var(--green); font-size: .9em; font-weight: 600;
+        margin: 16px 0 8px 0; letter-spacing: 1.5px;
+    }
+    .section h3::before { content: '# '; color: var(--cyan); opacity: .3; font-weight: 300; }
+    .section p, .section li { color: #88b0c8; font-size: .9em; }
+    .section ul, .section ol { padding-left: 22px; margin: 6px 0 12px 0; }
+    .section li { margin: 5px 0; }
+
+    .cmd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 8px 18px; }
+    .cmd-item {
+        padding: 12px 14px; border-radius: 12px;
+        border: 1px solid transparent;
+        transition: all .35s;
+        background: rgba(0,240,255,.01);
+    }
+    .cmd-item:hover {
+        background: rgba(0,240,255,.05);
+        border-color: rgba(0,240,255,.12);
+        box-shadow: 0 0 25px rgba(0,240,255,.04);
+        transform: translateX(6px) scale(1.01);
+    }
+    .cmd-item .keyword { color: var(--green); font-weight: 600; letter-spacing: .5px; }
+    .cmd-item .keyword::before { content: '$ '; color: var(--cyan); opacity: .3; font-weight: 300; }
+    .cmd-item .desc { color: #5a98b0; font-size: .84em; }
+    .cmd-item .example { color: #3a6a8a; font-size: .76em; font-style: italic; }
+    .cmd-item .example::before { content: '// '; color: var(--cyan); opacity: .2; }
+
+    .code {
+        background: #020810ee;
+        border: 1px solid rgba(0,240,255,.12);
+        border-radius: 6px; padding: 2px 10px;
+        font-family: 'Cascadia Code', 'Consolas', monospace;
+        font-size: .83em; color: var(--green);
+        box-shadow: inset 0 0 10px rgba(0,240,255,.02);
+    }
+
+    .shortcut-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0; }
+    .shortcut-btn {
+        background: linear-gradient(145deg, rgba(6,14,30,.85), rgba(2,4,10,.85));
+        border: 1px solid rgba(0,240,255,.08);
+        border-radius: 14px; padding: 18px 8px 14px;
+        text-align: center; font-size: .82em;
+        color: #b8d4e0;
+        transition: all .4s cubic-bezier(.25,.46,.45,.94);
+        backdrop-filter: blur(4px);
+        position: relative; overflow: hidden;
+    }
+    .shortcut-btn::before {
+        content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(0,240,255,.05), transparent);
+        transition: left .6s;
+    }
+    .shortcut-btn:hover::before { left: 100%; }
+    .shortcut-btn:hover {
+        border-color: rgba(0,240,255,.3);
+        transform: translateY(-5px) scale(1.04);
+        box-shadow: 0 15px 40px rgba(0,240,255,.08);
+        background: linear-gradient(145deg, rgba(8,20,40,.9), rgba(3,6,16,.9));
+    }
+    .shortcut-btn .emoji {
+        font-size: 1.8em; display: block; margin-bottom: 6px;
+        filter: drop-shadow(0 0 12px rgba(0,240,255,.1));
+        transition: transform .3s;
+    }
+    .shortcut-btn:hover .emoji { transform: scale(1.2); }
+
+    table {
+        width: 100%; border-collapse: separate; border-spacing: 0;
+        margin: 12px 0; font-size: .84em;
+        border-radius: 12px; overflow: hidden;
+        border: 1px solid rgba(0,240,255,.07);
+    }
+    th {
+        background: linear-gradient(135deg, rgba(0,240,255,.05), rgba(0,255,136,.02));
+        color: var(--cyan); padding: 10px 14px; text-align: left;
+        font-weight: 600; letter-spacing: 1.5px;
+        text-transform: uppercase; font-size: .74em;
+        border-bottom: 1px solid rgba(0,240,255,.1);
+    }
+    td { padding: 8px 14px; border-bottom: 1px solid rgba(0,240,255,.03); color: #88b0c8; transition: background .2s; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(0,240,255,.03); }
+
+    a { transition: all .25s; color: var(--cyan); text-decoration: none; }
+    a:hover { text-shadow: 0 0 20px rgba(0,240,255,.2); }
+
+    .dot {
+        display: inline-block; width: 7px; height: 7px;
+        border-radius: 50%; margin-right: 6px;
+        animation: pulse-dot 2s infinite;
+    }
+    .dot.cyan { background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+    .dot.green { background: var(--green); box-shadow: 0 0 12px var(--green); }
+    .dot.gold { background: var(--gold); box-shadow: 0 0 12px var(--gold); }
+    .dot.pink { background: var(--pink); box-shadow: 0 0 12px var(--pink); }
+
+    .footer {
+        text-align: center; color: #2a4a6a; font-size: .76em;
+        margin-top: 36px; padding: 20px 0 10px;
+        border-top: 1px solid rgba(0,240,255,.04);
+        letter-spacing: 2px; position: relative;
+    }
+    .footer::before {
+        content: ''; position: absolute; top: -1px; left: 20%; width: 60%; height: 1px;
+        background: linear-gradient(90deg, transparent, var(--cyan), var(--green), transparent);
+        opacity: .15;
+    }
+    .footer span { color: #3a5a7a; }
+
+    @media (max-width: 700px) {
+        body { padding: 14px; }
+        h1 { font-size: 1.8em; letter-spacing: 5px; }
+        .cmd-grid, .toc-grid { grid-template-columns: 1fr; }
+        .shortcut-bar { grid-template-columns: repeat(2, 1fr); }
+        .section h2 { font-size: .9em; }
+        .typing-line { font-size: .55em; }
+        .radar, .eq, .cube-wrap { display: none; }
+    }
+    @media (min-width: 701px) and (max-width: 1000px) {
+        h1 { font-size: 2.8em; }
+    }
+</style>
+</head>
+<body>
+
+<div class="scan-beam"></div>
+<div class="crt"></div>
+<div class="hex-overlay"></div>
+<div class="c tl"></div><div class="c tr"></div><div class="c bl"></div><div class="c br"></div>
+<div class="t t1"></div><div class="t t2"></div><div class="t t3"></div><div class="t t4"></div>
+<div class="t t5"></div><div class="t t6"></div><div class="t t7"></div><div class="t t8"></div>
+<div class="radar"></div>
+<div class="pulse-ring"></div>
+<div class="pulse-ring"></div>
+<div class="eq"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div>
+<div id="cursor-glow"></div>
+<div id="ripples"></div>
+
+<canvas id="aurora-canvas"></canvas>
+<canvas id="particle-canvas"></canvas>
+
+<div class="container">
+
+<div class="header">
+    <div class="cube-wrap"><div class="cube">
+        <div class="cube-face"></div>
+        <div class="cube-face"></div>
+        <div class="cube-face"></div>
+        <div class="cube-face"></div>
+        <div class="cube-face"></div>
+        <div class="cube-face"></div>
+        <div class="cube-face"></div>
+    </div></div>
+    <h1>
+        <span class="g1" id="title-main">J.A.R.V.I.S</span>
+        <span class="g2">J.A.R.V.I.S</span>
+        <span class="g3">J.A.R.V.I.S</span>
+    </h1>
+    <p class="subtitle"><span>Neural Interface</span> &bull; Complete A&ndash;Z User Guide</p>
+    <div class="live-clock" id="live-clock"><span>&#x25cf;</span> SYSTEM <span id="clock-display">--:--:--</span> <span>UTC</span></div>
+    <div class="typing-wrap">
+        <div class="typing-line" id="typing-line">INITIALIZING SYSTEM PROTOCOLS . . .</div>
+    </div>
+    <div class="badge-row">
+        <span class="badge">Platform: Windows</span>
+        <span class="badge">AI: Local Only</span>
+        <span class="badge">Free</span>
+        <span class="badge">Open Source</span>
+        <span class="badge">v3.0</span>
+    </div>
+</div>
+
+<div class="toc">
+<h2>Interface Index</h2>
+<div class="toc-grid">
+<a href="#overview">1. Overview</a>
+<a href="#requirements">2. System Requirements</a>
+<a href="#setup">3. Setup &amp; Installation</a>
+<a href="#started">4. Getting Started</a>
+<a href="#commands-system">5. System Commands</a>
+<a href="#commands-apps">6. Application Commands</a>
+<a href="#commands-web">7. Web &amp; Search Commands</a>
+<a href="#commands-media">8. Media Commands</a>
+<a href="#commands-productivity">9. Productivity Commands</a>
+<a href="#commands-info">10. Information Commands</a>
+<a href="#commands-ai">11. AI &amp; Writing Commands</a>
+<a href="#commands-conversation">12. Conversation Commands</a>
+<a href="#commands-network">13. Network Commands</a>
+<a href="#nlu">14. NLU Engine</a>
+<a href="#qa">15. Q&amp;A &amp; Web Search</a>
+<a href="#imagegen">16. Image Generation</a>
+<a href="#chat">17. Chat Features</a>
+<a href="#ui">18. User Interface</a>
+<a href="#orb">19. 3D AI Nexus Orb</a>
+<a href="#shortcuts">20. Shortcut Panel</a>
+<a href="#env">21. Environment Variables</a>
+<a href="#files">22. File Paths</a>
+<a href="#tips">23. Tips &amp; Tricks</a>
+<a href="#troubleshooting">24. Troubleshooting</a>
+</div>
+</div>
+
+<div class="section" id="overview"><h2><span class="num">01</span><span class="title-glow">Overview</span></h2>
+<p>J.A.R.V.I.S (<strong>J</strong>ust <strong>A</strong> <strong>R</strong>ather <strong>V</strong>ery <strong>I</strong>ntelligent <strong>S</strong>ystem) is a <strong>desktop AI voice assistant</strong> built with Python and CustomTkinter. It runs entirely on your local PC using <strong>Ollama</strong> (free, no cloud APIs) for AI-powered tasks, with optional AI understanding via <span class="code">llama3.2</span>.</p>
+<p>It can control your system, search the web, write content, generate images, answer questions, manage files, and much more&mdash;all through natural voice or text commands.</p></div>
+
+<div class="section" id="requirements"><h2><span class="num">02</span><span class="title-glow">System Requirements</span></h2>
+<h3>Minimum</h3>
+<ul><li><span class="dot cyan"></span>Windows 10 or 11 (64-bit)</li><li><span class="dot cyan"></span>4 GB RAM</li><li><span class="dot cyan"></span>Microphone (for voice input)</li><li><span class="dot cyan"></span>Internet connection (for web search, Wikipedia, translations)</li></ul>
+<h3>Recommended <span style="color:#4a7a9a;font-size:.8em;">(for AI features)</span></h3>
+<ul><li><span class="dot green"></span>8 GB+ RAM</li><li><span class="dot green"></span><a href="https://ollama.com" target="_blank">Ollama</a> installed with <span class="code">llama3.2</span> model pulled</li><li><span class="dot green"></span>WebView2 Runtime (for 3D orb, included with Windows 11)</li></ul></div>
+
+<div class="section" id="setup"><h2><span class="num">03</span><span class="title-glow">Setup &amp; Installation</span></h2>
+<ol><li><strong>Install Ollama</strong> (optional, not needed if bundled in EXE) from <a href="https://ollama.com" target="_blank">ollama.com</a> and pull a model:<br><span class="code">ollama pull llama3.2</span> <span style="color:#4a7a9a;font-size:.8em;">&larr; auto-pulled on first start if bundled</span></li><li><strong>Place <span class="code">nircmd.exe</span> and <span class="code">nircmdc.exe</span></strong> in the same folder as the EXE (for volume control).</li><li><strong>Run J.A.R.V.I.S.exe</strong> <span style="color:#4a7a9a;">&mdash; no installation needed.</span></li><li><strong>Enable AI understanding</strong> <span style="color:#4a7a9a;">(auto-enabled if Ollama is running):</span><br>Set <span class="code">JARVIS_AI=0</span> to disable, or leave unset to auto-enable.</li></ol></div>
+
+<div class="section" id="started"><h2><span class="num">04</span><span class="title-glow">Getting Started</span></h2>
+<h3>Voice Mode</h3><p>Press the <strong>MIC</strong> button in the bottom-center of the UI and speak your command. The 3D orb pulses when listening.</p>
+<ul><li>"Hey, open Notepad"</li><li>"What time is it?"</li><li>"Search for the latest tech news"</li><li>"Write a poem about AI"</li></ul>
+<h3>Text Mode</h3><p>Type directly in the text box and press <strong>Enter</strong>. Use <strong>Shift+Enter</strong> for multi-line input.</p>
+<h3>Stopping J.A.R.V.I.S</h3><p>Press the <strong>Stop</strong> button (red square) next to the text input to cancel the current command or speech.</p></div>
+
+<div class="section" id="commands-system"><h2><span class="num">05</span><span class="title-glow">System Commands</span></h2>
+<div class="cmd-grid">
+<div class="cmd-item"><span class="keyword">Lock Workstation</span><br><span class="desc">Lock your PC</span><br><span class="example">"lock my PC", "lock system", "secure system"</span></div>
+<div class="cmd-item"><span class="keyword">Shutdown</span><br><span class="desc">Shut down the computer</span><br><span class="example">"shutdown", "turn off system", "power off"</span></div>
+<div class="cmd-item"><span class="keyword">Restart</span><br><span class="desc">Restart the computer</span><br><span class="example">"restart", "reboot", "restart system"</span></div>
+<div class="cmd-item"><span class="keyword">Log Off</span><br><span class="desc">Sign out of current user</span><br><span class="example">"log off", "sign out"</span></div>
+<div class="cmd-item"><span class="keyword">Schedule Shutdown</span><br><span class="desc">Set a timed shutdown/restart</span><br><span class="example">"schedule shutdown in 30 minutes"</span></div>
+<div class="cmd-item"><span class="keyword">Background Mode</span><br><span class="desc">Minimize J.A.R.V.I.S to background</span><br><span class="example">"jarvis be in background"</span></div>
+<div class="cmd-item"><span class="keyword">Empty Recycle Bin</span><br><span class="desc">Clear the recycle bin</span><br><span class="example">"empty recycle bin", "clean recycle bin"</span></div>
+<div class="cmd-item"><span class="keyword">Clear Junk Files</span><br><span class="desc">Delete Windows temporary files</span><br><span class="example">"clear junk files", "clear temporary files"</span></div>
+<div class="cmd-item"><span class="keyword">Change Wallpaper</span><br><span class="desc">Set random wallpaper from bundled wallpapers/ folder</span><br><span class="example">"change wallpaper", "next wallpaper"</span></div>
+<div class="cmd-item"><span class="keyword">Open Settings</span><br><span class="desc">Open Windows Settings</span><br><span class="example">"open settings", "launch settings"</span></div>
+<div class="cmd-item"><span class="keyword">Open Control Panel</span><br><span class="desc">Open classic Control Panel</span><br><span class="example">"open control panel"</span></div>
+</div></div>
+
+<div class="section" id="commands-apps"><h2><span class="num">06</span><span class="title-glow">Application Commands</span></h2>
+<div class="cmd-grid">
+<div class="cmd-item"><span class="keyword">Notepad</span><br><span class="example">"open notepad", "notepad", "notes app"</span></div>
+<div class="cmd-item"><span class="keyword">Calculator</span><br><span class="example">"calculator", "calc", "open calculator"</span></div>
+<div class="cmd-item"><span class="keyword">Browser</span><br><span class="example">"open browser", "open google", "chrome"</span></div>
+<div class="cmd-item"><span class="keyword">File Explorer</span><br><span class="example">"open file explorer", "my files", "explorer"</span></div>
+<div class="cmd-item"><span class="keyword">Command Prompt</span><br><span class="example">"open command prompt", "cmd", "terminal"</span></div>
+<div class="cmd-item"><span class="keyword">PowerShell</span><br><span class="example">"open powershell", "launch powershell"</span></div>
+<div class="cmd-item"><span class="keyword">Task Manager</span><br><span class="example">"open task manager", "taskmanager"</span></div>
+<div class="cmd-item"><span class="keyword">PDF Viewer</span><br><span class="example">"open pdf viewer"</span></div>
+<div class="cmd-item"><span class="keyword">Music Player</span><br><span class="example">"open music player", "play music"</span></div>
+<div class="cmd-item"><span class="keyword">Any Application</span><br><span class="example">"open application [name]" (searches Windows)</span></div>
+<div class="cmd-item"><span class="keyword">Close Application</span><br><span class="example">"close application [name]" (force kills via taskkill)</span></div>
+</div></div>
+
+<div class="section" id="commands-web"><h2><span class="num">07</span><span class="title-glow">Web &amp; Search Commands</span></h2>
+<div class="cmd-grid">
+<div class="cmd-item"><span class="keyword">Google Search</span><br><span class="example">"search online for...", "google...", "look up..."</span></div>
+<div class="cmd-item"><span class="keyword">Wikipedia Search</span><br><span class="example">"search wikipedia for...", "wiki..."</span></div>
+<div class="cmd-item"><span class="keyword">YouTube Search</span><br><span class="example">"play [song/video] on youtube", "youtube..."</span></div>
+<div class="cmd-item"><span class="keyword">News</span><br><span class="example">"fetch news", "news from times of india"</span></div>
+<div class="cmd-item"><span class="keyword">Check Weather</span><br><span class="example">"check weather", "weather report"</span></div>
+<div class="cmd-item"><span class="keyword">Internet Speed Test</span><br><span class="example">"check internet speed", "speed test"</span></div>
+<div class="cmd-item"><span class="keyword">Find IP Address</span><br><span class="example">"what's my ip address", "find my ip"</span></div>
+<div class="cmd-item"><span class="keyword">Where Is...?</span><br><span class="example">"where is [place]" (opens Google Maps)</span></div>
+<div class="cmd-item"><span class="keyword">General Knowledge</span><br><span class="example">"what is...", "tell me about...", "explain..."</span></div>
+<div class="cmd-item"><span class="keyword">List / Recommend</span><br><span class="example">"list some horror movies", "recommend coding apps"</span></div>
+</div></div>
+
+<div class="section" id="commands-media"><h2><span class="num">08</span><span class="title-glow">Media Commands</span></h2>
+<div class="cmd-grid">
+<div class="cmd-item"><span class="keyword">Play Music</span><br><span class="example">"play music", "play song", "start music"</span></div>
+<div class="cmd-item"><span class="keyword">Pause Music</span><br><span class="example">"pause music", "stop music", "pause song"</span></div>
+<div class="cmd-item"><span class="keyword">Next Track</span><br><span class="example">"next track", "skip track"</span></div>
+<div class="cmd-item"><span class="keyword">Previous Track</span><br><span class="example">"previous track", "go back"</span></div>
+<div class="cmd-item"><span class="keyword">Volume Up</span><br><span class="example">"volume up", "increase volume", "turn up"</span></div>
+<div class="cmd-item"><span class="keyword">Volume Down</span><br><span class="example">"volume down", "decrease volume", "turn down"</span></div>
+<div class="cmd-item"><span class="keyword">Mute</span><br><span class="example">"mute volume", "turn off sound"</span></div>
+<div class="cmd-item"><span class="keyword">Unmute</span><br><span class="example">"unmute volume", "turn on sound"</span></div>
+<div class="cmd-item"><span class="keyword">Play YouTube Video</span><br><span class="example">"play [video] on youtube", "watch [song]"</span></div>
+</div></div>
+
+<div class="section" id="commands-productivity"><h2><span class="num">09</span><span class="title-glow">Productivity Commands</span></h2>
+<div class="cmd-grid">
+<div class="cmd-item"><span class="keyword">Take Screenshot</span><br><span class="desc">Captures screen to screenshot.png</span><br><span class="example">"take a screenshot"</span></div>
+<div class="cmd-item"><span class="keyword">Write a Note</span><br><span class="desc">Saves to jarvis.txt</span><br><span class="example">"write a note that...", "take a note"</span></div>
+<div class="cmd-item"><span class="keyword">Show / Read Notes</span><br><span class="desc">Display saved notes</span><br><span class="example">"show note", "read my note"</span></div>
+<div class="cmd-item"><span class="keyword">Set Reminder</span><br><span class="desc">Reminder with hours/minutes delay</span><br><span class="example">"remind me to... in 10 minutes"</span></div>
+<div class="cmd-item"><span class="keyword">Set Alarm</span><br><span class="desc">Alarm at specific time</span><br><span class="example">"set alarm for 7:00 AM"</span></div>
+<div class="cmd-item"><span class="keyword">Dictation Mode</span><br><span class="desc">Speech-to-text typing via Ctrl+T</span><br><span class="example">"speech to text", "dictation"</span></div>
+<div class="cmd-item"><span class="keyword">Currency Converter</span><br><span class="desc">Convert between currencies</span><br><span class="example">"convert 100 USD to EUR"</span></div>
+<div class="cmd-item"><span class="keyword">Translate</span><br><span class="desc">Translate text between 25+ languages</span><br><span class="example">"translate hello to Spanish"</span></div>
+<div class="cmd-item"><span class="keyword">System Performance</span><br><span class="desc">Voice readout of CPU/RAM/disk</span><br><span class="example">"system performance", "CPU usage"</span></div>
+<div class="cmd-item"><span class="keyword">Start Screen Recording</span><br><span class="desc">Record screen</span><br><span class="example">"screen recording", "record screen"</span></div>
+</div></div>
+
+<div class="section" id="commands-info"><h2><span class="num">10</span><span class="title-glow">Information Commands</span></h2>
+<div class="cmd-grid">
+<div class="cmd-item"><span class="keyword">Time</span><br><span class="example">"what time is it", "tell me the time"</span></div>
+<div class="cmd-item"><span class="keyword">Date</span><br><span class="example">"what date is it", "tell me the date"</span></div>
+<div class="cmd-item"><span class="keyword">Joke</span><br><span class="example">"tell me a joke", "make me laugh"</span></div>
+<div class="cmd-item"><span class="keyword">Spell a Word</span><br><span class="example">"spell [word]" (spells letter by letter)</span></div>
+<div class="cmd-item"><span class="keyword">Synonym</span><br><span class="example">"synonym for [word]"</span></div>
+<div class="cmd-item"><span class="keyword">Antonym</span><br><span class="example">"antonym of [word]"</span></div>
+<div class="cmd-item"><span class="keyword">Definition</span><br><span class="example">"define [word]", "meaning of [word]"</span></div>
+<div class="cmd-item"><span class="keyword">Calculate</span><br><span class="example">"what is 25% of 200", "5 + 3 * 2"</span></div>
+<div class="cmd-item"><span class="keyword">How To</span><br><span class="desc">WikiHow step-by-step guides</span><br><span class="example">"how to tie a tie"</span></div>
+<div class="cmd-item"><span class="keyword">Who Is / What Is</span><br><span class="desc">Wikidata current leaders, Wikipedia</span><br><span class="example">"who is the president of France"</span></div>
+</div></div>
+
+<div class="section" id="commands-ai"><h2><span class="num">11</span><span class="title-glow">AI &amp; Writing Commands</span></h2>
+<div class="cmd-grid">
+<div class="cmd-item"><span class="keyword">Write Essay</span><br><span class="example">"write an essay about..."</span></div>
+<div class="cmd-item"><span class="keyword">Write Letter</span><br><span class="example">"write a letter to..."</span></div>
+<div class="cmd-item"><span class="keyword">Write Poem</span><br><span class="example">"write a poem about..."</span></div>
+<div class="cmd-item"><span class="keyword">Write Story</span><br><span class="example">"write a story about..."</span></div>
+<div class="cmd-item"><span class="keyword">Write Paragraph</span><br><span class="example">"write a paragraph about..."</span></div>
+<div class="cmd-item"><span class="keyword">Write Notice</span><br><span class="example">"write a notice about..."</span></div>
+<div class="cmd-item"><span class="keyword">Compose / Draft</span><br><span class="example">"compose a letter...", "draft an essay..."</span></div>
+<div class="cmd-item"><span class="keyword">Generate Image</span><br><span class="example">"generate an image of...", "create a picture of..."</span></div>
+<div class="cmd-item"><span class="keyword">Answer Questions</span><br><span class="desc">Uses Ollama LLM if enabled</span><br><span class="example">"what is quantum computing?"</span></div>
+</div><p><span class="dot gold"></span><strong>Note:</strong> AI writing requires <strong>Ollama</strong> running. Image generation works independently via the airforce API.</p></div>
+
+<div class="section" id="commands-conversation"><h2><span class="num">12</span><span class="title-glow">Conversation Commands</span></h2>
+<div class="cmd-grid">
+<div class="cmd-item"><span class="keyword">Greetings</span><br><span class="example">"hello", "hi", "hey", "good morning", "what's up"</span></div>
+<div class="cmd-item"><span class="keyword">Farewell</span><br><span class="example">"bye", "goodbye", "see you", "quit", "exit"</span></div>
+<div class="cmd-item"><span class="keyword">Sleep Mode</span><br><span class="example">"good night", "jarvis goodbye", "sleep now"</span></div>
+<div class="cmd-item"><span class="keyword">Thanks</span><br><span class="example">"thank you", "thanks" &rarr; "You're welcome"</span></div>
+<div class="cmd-item"><span class="keyword">Praise / Compliment</span><br><span class="example">"it's perfect", "great", "good job", "awesome", "amazing"</span></div>
+<div class="cmd-item"><span class="keyword">What Can You Do?</span><br><span class="example">"what can you do", "help", "commands"</span></div>
+<div class="cmd-item"><span class="keyword">Who Are You?</span><br><span class="example">"who are you", "who created you"</span></div>
+<div class="cmd-item"><span class="keyword">How Are You?</span><br><span class="example">"how are you", "how's it going"</span></div>
+<div class="cmd-item"><span class="keyword">Games</span><br><span class="example">"do you have any game", "i am bored", "games"</span></div>
+</div></div>
+
+<div class="section" id="commands-network"><h2><span class="num">13</span><span class="title-glow">Network Commands</span></h2>
+<div class="cmd-grid">
+<div class="cmd-item"><span class="keyword">Find My IP</span><br><span class="example">"find my IP address", "what's my IP"</span></div>
+<div class="cmd-item"><span class="keyword">Scan Network Devices</span><br><span class="desc">Uses nmap to find devices on your network</span><br><span class="example">"find devices around me", "scan network"</span></div>
+<div class="cmd-item"><span class="keyword">Internet Speed Test</span><br><span class="example">"check internet speed", "speed test"</span></div>
+</div></div>
+
+<div class="section" id="nlu"><h2><span class="num">14</span><span class="title-glow">NLU Engine <span style="font-size:.5em;color:#4a7a9a;">(Natural Language Understanding)</span></span></h2>
+<p>J.A.R.V.I.S has a full 5-layer NLU pipeline in <span class="code">nlu_engine.py</span> that analyzes every query.</p>
+<h3>5 Analysis Layers</h3>
+<table><tr><th>Layer</th><th>What It Does</th></tr>
+<tr><td><span class="dot cyan"></span>1. Lexical</td><td>Tokenization, POS tagging, lemmatization, sentiment analysis (VADER), text statistics</td></tr>
+<tr><td><span class="dot cyan"></span>2. Syntactic</td><td>Phrase chunking (NP/VP/PP), constituency parsing (CFG), dependency relations</td></tr>
+<tr><td><span class="dot cyan"></span>3. Semantic</td><td>Named Entity Recognition (person, org, location, date, etc.), Word Sense Disambiguation, hypernym/hyponym, relation extraction</td></tr>
+<tr><td><span class="dot cyan"></span>4. Discourse</td><td>Pronoun resolution ("it", "that" &rarr; last topic), topic continuity, follow-up detection, ellipsis resolution</td></tr>
+<tr><td><span class="dot cyan"></span>5. Pragmatic</td><td>Intent classification (71 intent types), speech act, politeness/urgency/certainty scoring, question type classification (33 types), negation detection</td></tr>
+</table>
+<h3>Detected Intent Categories</h3><p><span class="badge">greeting</span> <span class="badge">farewell</span> <span class="badge">thanks</span> <span class="badge">praise</span> <span class="badge">time_query</span> <span class="badge">date_query</span> <span class="badge">weather_query</span> <span class="badge">definition</span> <span class="badge">factoid_query</span> <span class="badge">how_to</span> <span class="badge">comparison</span> <span class="badge">list_query</span> <span class="badge">calculate</span> <span class="badge">translate</span> <span class="badge">spell</span> <span class="badge">synonym</span> <span class="badge">antonym</span> <span class="badge">news_query</span> <span class="badge">joke</span> <span class="badge">recommendation</span> <span class="badge">alarm_set</span> <span class="badge">reminder_set</span> <span class="badge">email_send</span> <span class="badge">note_taking</span> <span class="badge">search</span> <span class="badge">system_info</span> <span class="badge">screenshot</span> <span class="badge">volume_control</span> <span class="badge">app_launch</span> <span class="badge">app_close</span> <span class="badge">price_query</span> <span class="badge">currency</span> <span class="badge">stock_query</span> <span class="badge">health_query</span> <span class="badge">science_fact</span> <span class="badge">technology</span> <span class="badge">space_query</span> <span class="badge">history_query</span> <span class="badge">philosophy</span> <span class="badge">recipe_query</span> <span class="badge">opinion_query</span> <span class="badge">preference</span> <span class="badge">help</span> <span class="badge">status</span> <span class="badge">identity</span> <span class="badge">capability</span></p><p><span style="color:#4a7a9a;">&hellip;and 30+ more. J.A.R.V.I.S understands 71 different intent categories.</span></p></div>
+
+<div class="section" id="qa"><h2><span class="num">15</span><span class="title-glow">Q&amp;A &amp; Web Search</span></h2>
+<p>When you ask a question, J.A.R.V.I.S searches multiple sources <strong>in parallel</strong>:</p>
+<table><tr><th>Source</th><th>What It Provides</th></tr>
+<tr><td>Wikidata</td><td>Current leaders/officials (president, prime minister, etc.)</td></tr>
+<tr><td>DuckDuckGo Instant Answer API</td><td>Quick factual answers (definitions, conversions, etc.)</td></tr>
+<tr><td>DuckDuckGo Web Snippet</td><td>Search result snippets from DDG HTML</td></tr>
+<tr><td>Google Featured Snippet</td><td>Highlighted answers from Google search</td></tr>
+<tr><td>Wikipedia</td><td>Summaries for factual/topical queries</td></tr>
+<tr><td>Webpage Content Fetch</td><td>Fetches and reads the top search result's page content</td></tr>
+<tr><td>Ollama LLM</td><td>AI-generated answers (if enabled and running)</td></tr>
+<tr><td>WikiHow</td><td>Step-by-step how-to guides</td></tr>
+</table><p><span class="dot gold"></span>If no automated answer is found, J.A.R.V.I.S will <strong>ask you first</strong> before opening a web browser search.</p></div>
+
+<div class="section" id="imagegen"><h2><span class="num">16</span><span class="title-glow">Image Generation</span></h2>
+<p>Generates images from text using the airforce API with automatic model fallbacks:</p>
+<p><span class="badge">flux-2-dev</span> <span class="badge">flux-2-pro</span> <span class="badge">imagen-4</span> <span class="badge">gpt-image-2</span></p>
+<p>Saved to <span class="code">%USERPROFILE%\Pictures\JARVIS\generated_image.png</span> and opened automatically.</p><p><strong>Try:</strong> "generate an image of a futuristic city at sunset"</p></div>
+
+<div class="section" id="chat"><h2><span class="num">17</span><span class="title-glow">Chat Features</span></h2>
+<div class="cmd-grid">
+<div class="cmd-item"><span class="keyword">New Chat</span><br><span class="desc">Start a fresh conversation (button in sidebar)</span></div>
+<div class="cmd-item"><span class="keyword">Chat History</span><br><span class="desc">Click any past session to switch; stored in chat_history.json</span></div>
+<div class="cmd-item"><span class="keyword">Rename Chat</span><br><span class="desc">Select a chat, click the rename icon, type new name</span></div>
+<div class="cmd-item"><span class="keyword">Delete Chat</span><br><span class="desc">Select a chat, click the delete icon</span></div>
+<div class="cmd-item"><span class="keyword">Edit Message</span><br><span class="desc">Click the edit icon on your message to revise</span></div>
+<div class="cmd-item"><span class="keyword">Copy Response</span><br><span class="desc">Click the copy icon to copy assistant's reply</span></div>
+<div class="cmd-item"><span class="keyword">Rewrite</span><br><span class="desc">Click the rewrite icon to regenerate a response</span></div>
+<div class="cmd-item"><span class="keyword">Export Chat</span><br><span class="desc">Shortcut panel &rarr; Export button saves to a .txt file</span></div>
+</div></div>
+
+<div class="section" id="ui"><h2><span class="num">18</span><span class="title-glow">User Interface</span></h2>
+<p>3-column dark-themed layout:</p>
+<table><tr><th>Panel</th><th>Contents</th></tr>
+<tr><td><strong>Left Sidebar</strong> (300px)</td><td>System Overview (CPU/RAM/Disk circular gauges), AI Capabilities status (6 indicators), Chat History list</td></tr>
+<tr><td><strong>Center</strong> (flexible)</td><td>Greeting banner, scrollable chat area with message bubbles, text input box with Send/Stop buttons, voice mic button, audio visualizer</td></tr>
+<tr><td><strong>Right Panel</strong> (340px)</td><td>3D AI Nexus Orb (WebView2/Three.js), 6 shortcut buttons, Network panel (up/down speed, video)</td></tr>
+</table></div>
+
+<div class="section" id="orb"><h2><span class="num">19</span><span class="title-glow">3D AI Nexus Orb</span></h2>
+<table><tr><th>State</th><th>Orb Behavior</th><th>Meaning</th></tr>
+<tr><td><span class="dot cyan"></span>Idle</td><td>Dim, calm</td><td>Waiting for input</td></tr>
+<tr><td><span class="dot green"></span>Listening</td><td>Pulsing glow</td><td>Hearing your voice</td></tr>
+<tr><td><span class="dot gold"></span>Thinking</td><td>Rotating/processing</td><td>Processing your request</td></tr>
+<tr><td><span class="dot cyan"></span>Speaking</td><td>Bright, energetic</td><td>Responding to you</td></tr>
+</table><p>Runs in a WebView2 frame with a local HTTP server. Falls back to a label if unavailable.</p></div>
+
+<div class="section" id="shortcuts"><h2><span class="num">20</span><span class="title-glow">Shortcut Panel</span></h2>
+<div class="shortcut-bar">
+<div class="shortcut-btn"><span class="emoji">&#x1f512;</span>Lock<br><span style="font-size:.72em;color:#4a8aaa;">Lock workstation</span></div>
+<div class="shortcut-btn"><span class="emoji">&#x23fb;</span>Shut Down<br><span style="font-size:.72em;color:#4a8aaa;">Shut down PC</span></div>
+<div class="shortcut-btn"><span class="emoji">&#x1f5d1;</span>Clear Bin<br><span style="font-size:.72em;color:#4a8aaa;">Empty recycle bin</span></div>
+<div class="shortcut-btn"><span class="emoji">&#x1f4c4;</span>Export Chat<br><span style="font-size:.72em;color:#4a8aaa;">Save chat to .txt</span></div>
+<div class="shortcut-btn"><span class="emoji">&#x1f6aa;</span>Exit<br><span style="font-size:.72em;color:#4a8aaa;">Close J.A.R.V.I.S</span></div>
+<div class="shortcut-btn"><span class="emoji">&#x2753;</span>Help<br><span style="font-size:.72em;color:#4a8aaa;">This guide</span></div>
+</div></div>
+
+<div class="section" id="env"><h2><span class="num">21</span><span class="title-glow">Environment Variables</span></h2>
+<table><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr>
+<tr><td><span class="code">JARVIS_AI</span></td><td><span style="color:#4a7a9a;">(unset)</span></td><td>Set <span class="code">0</span> to disable AI, leave unset to auto-enable when Ollama runs</td></tr>
+<tr><td><span class="code">JARVIS_AI_MODEL</span></td><td><span class="code">llama3.2</span></td><td>Ollama model name</td></tr>
+<tr><td><span class="code">JARVIS_AI_URL</span></td><td><span class="code">http://localhost:11434/v1</span></td><td>Custom Ollama endpoint</td></tr>
+<tr><td><span class="code">JARVIS_AI_ANSWERS</span></td><td><span class="code">1</span></td><td>Enable Ollama for Q&amp;A answers</td></tr>
+<tr><td><span class="code">JARVIS_IMAGE_MODEL</span></td><td><span style="color:#4a7a9a;">(unset)</span></td><td>Preferred image model ID</td></tr>
+</table><p><span class="dot pink"></span><strong>Security:</strong> <span class="code">AI_LOCAL_ONLY = True</span>. API key variables are ignored. Only local Ollama endpoints allowed.</p></div>
+
+<div class="section" id="files"><h2><span class="num">22</span><span class="title-glow">File Paths</span></h2>
+<table><tr><th>Purpose</th><th>Path</th></tr>
+<tr><td>Main script</td><td><span class="code">J.A.R.V.I.S.py</span></td></tr>
+<tr><td>NLU engine</td><td><span class="code">nlu_engine.py</span></td></tr>
+<tr><td>3D orb panel</td><td><span class="code">jarvis_orb_panel.py</span></td></tr>
+<tr><td>Chat history</td><td><span class="code">chat_history.json</span></td></tr>
+<tr><td>Help guide</td><td><span class="code">jarvis_help.html</span></td></tr>
+<tr><td>Background image</td><td><span class="code">BG.jpg</span></td></tr>
+<tr><td>Network video</td><td><span class="code">network orb.mp4</span></td></tr>
+<tr><td>Notes file</td><td><span class="code">jarvis.txt</span></td></tr>
+<tr><td>Screenshot</td><td><span class="code">screenshot.png</span></td></tr>
+<tr><td>Scanned devices</td><td><span class="code">connected_devices.txt</span></td></tr>
+<tr><td>Chat exports</td><td><span class="code">{topic}_{timestamp}.txt</span></td></tr>
+<tr><td>Generated images</td><td><span class="code">%USERPROFILE%\Pictures\JARVIS\</span></td></tr>
+<tr><td>Wallpapers</td><td><span class="code">wallpapers/</span> (bundled) or <span class="code">D:\WALLPAPERS\</span></td></tr>
+<tr><td>Icons</td><td><span class="code">icons/*.png</span> (16 icons)</td></tr>
+<tr><td>3D orb assets</td><td><span class="code">orb/</span> (HTML, CSS, JS, Three.js)</td></tr>
+<tr><td>Volume control</td><td><span class="code">nircmd.exe</span>, <span class="code">nircmdc.exe</span></td></tr>
+</table></div>
+
+<div class="section" id="tips"><h2><span class="num">23</span><span class="title-glow">Tips &amp; Tricks</span></h2>
+<ul>
+<li><span class="dot cyan"></span><strong>Natural language:</strong> No need to memorize commands &mdash; "Hey, lock my PC" works as well as "lock".</li>
+<li><span class="dot cyan"></span><strong>Follow-ups:</strong> Refer to "it" or "that" in your next query. J.A.R.V.I.S remembers the last topic.</li>
+<li><span class="dot cyan"></span><strong>Text mode:</strong> If voice isn't working, use text input. All commands work in text mode too.</li>
+<li><span class="dot cyan"></span><strong>Stop button:</strong> Press the Stop button anytime to cancel speech or a running command.</li>
+<li><span class="dot cyan"></span><strong>Edit &amp; Rewrite:</strong> Click the edit icon on your message to fix a typo, or the rewrite icon to regenerate.</li>
+<li><span class="dot cyan"></span><strong>Copy responses:</strong> Click the copy icon on any message bubble to copy it to clipboard.</li>
+<li><span class="dot cyan"></span><strong>Chat sessions:</strong> Use the sidebar to switch between conversations. History persists across restarts.</li>
+<li><span class="dot cyan"></span><strong>AI auto-enables:</strong> If Ollama is running, AI turns on automatically. Set <span class="code">JARVIS_AI=0</span> to disable.</li>
+<li><span class="dot cyan"></span><strong>Screen recording:</strong> Use the "screen recording" command to start/stop screen capture.</li>
+<li><span class="dot cyan"></span><strong>Speed tip:</strong> If searches are slow, check your internet connection.</li>
+</ul></div>
+
+<div class="section" id="troubleshooting"><h2><span class="num">24</span><span class="title-glow">Troubleshooting</span></h2>
+<table><tr><th>Problem</th><th>Solution</th></tr>
+<tr><td><span class="dot pink"></span>"Ollama is not running"</td><td>Install from <a href="https://ollama.com" target="_blank">ollama.com</a>, run <span class="code">ollama pull llama3.2</span>, start Ollama. If bundled, restart J.A.R.V.I.S.</td></tr>
+<tr><td><span class="dot pink"></span>Voice recognition not working</td><td>Check microphone connection. Ensure EXE is not blocked by firewall/antivirus.</td></tr>
+<tr><td><span class="dot pink"></span>3D orb shows "unavailable"</td><td>Install <a href="https://developer.microsoft.com/en-us/microsoft-edge/webview2/" target="_blank">WebView2 Runtime</a>.</td></tr>
+<tr><td><span class="dot pink"></span>Web search returns nothing</td><td>J.A.R.V.I.S will ask before opening a browser search. Check internet.</td></tr>
+<tr><td><span class="dot pink"></span>Image generation fails</td><td>Rate-limited to 1 req/min. Tries 4 models automatically with b64_json.</td></tr>
+<tr><td><span class="dot pink"></span>Commands not matching</td><td>Try rephrasing. Uses fuzzy matching for typos.</td></tr>
+<tr><td><span class="dot pink"></span>"I did not understand"</td><td>Try "search for..." or "what is..." format.</td></tr>
+<tr><td><span class="dot pink"></span>UI looks broken</td><td>Minimum window size is 1100x680. Try maximizing.</td></tr>
+<tr><td><span class="dot pink"></span>Volume control not working</td><td>Ensure <span class="code">nircmd.exe</span> and <span class="code">nircmdc.exe</span> are in the script directory.</td></tr>
+<tr><td><span class="dot pink"></span>Chat history lost</td><td>Check <span class="code">chat_history.json</span> exists and is valid JSON.</td></tr>
+</table></div>
+
+<div class="footer">
+J.A.R.V.I.S Desktop Assistant &mdash; Just A Rather Very Intelligent System<br>
+Built with Python &bull; CustomTkinter &bull; Ollama &bull; Three.js<br>
+<span>&copy; 2026 &mdash; All commands, features, and capabilities documented above</span>
+</div>
+
+</div>
+
+<script>
+(function() {
+    // ===== AURORA CANVAS =====
+    const ac = document.getElementById('aurora-canvas');
+    const actx = ac.getContext('2d');
+    let aw, ah;
+
+    function resizeAurora() {
+        aw = ac.width = window.innerWidth;
+        ah = ac.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeAurora);
+    resizeAurora();
+
+    let auroraTime = 0;
+
+    function drawAurora() {
+        actx.clearRect(0, 0, aw, ah);
+        auroraTime += 0.003;
+
+        const layers = [
+            { y: ah * 0.15, h: ah * 0.25, colors: ['rgba(0,240,255,0)', 'rgba(0,240,255,.06)', 'rgba(0,255,136,.04)', 'rgba(0,240,255,0)'], speed: 0.4, amp: 60 },
+            { y: ah * 0.25, h: ah * 0.3, colors: ['rgba(0,255,136,0)', 'rgba(0,255,136,.05)', 'rgba(136,51,255,.03)', 'rgba(0,255,136,0)'], speed: 0.6, amp: 80 },
+            { y: ah * 0.1, h: ah * 0.2, colors: ['rgba(255,34,119,0)', 'rgba(255,34,119,.03)', 'rgba(0,240,255,.04)', 'rgba(255,34,119,0)'], speed: 0.3, amp: 50 },
+            { y: ah * 0.35, h: ah * 0.2, colors: ['rgba(0,240,255,0)', 'rgba(0,240,255,.03)', 'rgba(255,204,68,.02)', 'rgba(0,240,255,0)'], speed: 0.5, amp: 45 },
+        ];
+
+        for (let l of layers) {
+            const grad = actx.createLinearGradient(0, l.y, 0, l.y + l.h);
+            for (let i = 0; i < l.colors.length; i++) {
+                grad.addColorStop(i / (l.colors.length - 1), l.colors[i]);
+            }
+
+            actx.beginPath();
+            for (let x = 0; x <= aw; x += 2) {
+                const y = l.y + l.h / 2 +
+                    Math.sin(x * 0.008 + auroraTime * l.speed) * l.amp * 0.6 +
+                    Math.sin(x * 0.015 + auroraTime * l.speed * 1.7 + 1) * l.amp * 0.4 +
+                    Math.sin(x * 0.003 + auroraTime * l.speed * 0.5 + 2) * l.amp * 0.3;
+                if (x === 0) actx.moveTo(x, y);
+                else actx.lineTo(x, y);
+            }
+            for (let x = aw; x >= 0; x -= 2) {
+                const y = l.y + l.h / 2 +
+                    Math.sin(x * 0.008 + auroraTime * l.speed + 3) * l.amp * 0.5 +
+                    Math.sin(x * 0.015 + auroraTime * l.speed * 1.7 + 4) * l.amp * 0.3 +
+                    Math.sin(x * 0.003 + auroraTime * l.speed * 0.5 + 5) * l.amp * 0.2;
+                actx.lineTo(x, y);
+            }
+            actx.closePath();
+            actx.fillStyle = grad;
+            actx.fill();
+        }
+
+        // bokeh lights
+        for (let i = 0; i < 8; i++) {
+            const bx = (Math.sin(auroraTime * (0.1 + i * 0.05) + i * 2) * 0.5 + 0.5) * aw;
+            const by = (Math.cos(auroraTime * (0.08 + i * 0.04) + i * 3) * 0.5 + 0.5) * ah * 0.6 + ah * 0.1;
+            const br = 30 + Math.sin(auroraTime * 0.5 + i) * 15 + 20;
+            const ba = 0.03 + Math.sin(auroraTime + i * 1.5) * 0.02 + 0.02;
+
+            const bg = actx.createRadialGradient(bx, by, 0, bx, by, br);
+            const colors = [
+                [0,240,255], [0,255,136], [255,34,119], [136,51,255], [255,204,68]
+            ];
+            const c = colors[i % colors.length];
+            bg.addColorStop(0, 'rgba(' + c.join(',') + ',' + ba + ')');
+            bg.addColorStop(0.5, 'rgba(' + c.join(',') + ',' + (ba * 0.3) + ')');
+            bg.addColorStop(1, 'rgba(' + c.join(',') + ',0)');
+            actx.fillStyle = bg;
+            actx.beginPath();
+            actx.arc(bx, by, br, 0, Math.PI * 2);
+            actx.fill();
+        }
+
+        requestAnimationFrame(drawAurora);
+    }
+    drawAurora();
+
+    // ===== PARTICLE CANVAS (neural net) =====
+    const pc = document.getElementById('particle-canvas');
+    const pctx = pc.getContext('2d');
+    let pw, ph, particles = [];
+    const PCOUNT = 60;
+    const MAXD = 160;
+
+    function resizeParticles() {
+        pw = pc.width = window.innerWidth;
+        ph = pc.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeParticles);
+    resizeParticles();
+
+    let mx = -9999, my = -9999;
+    document.addEventListener('mousemove', function(e) { mx = e.clientX; my = e.clientY; });
+    document.addEventListener('mouseleave', function() { mx = -9999; my = -9999; });
+
+    class P {
+        constructor() {
+            this.x = Math.random() * pw; this.y = Math.random() * ph;
+            this.vx = (Math.random() - .5) * .35; this.vy = (Math.random() - .5) * .35;
+            this.r = Math.random() * 1.5 + .5; this.a = Math.random() * .4 + .15;
+            this.h = Math.random() < .35 ? 140 : 190;
+        }
+        update() {
+            this.x += this.vx; this.y += this.vy;
+            if (this.x < 0 || this.x > pw) this.vx *= -1;
+            if (this.y < 0 || this.y > ph) this.vy *= -1;
+        }
+        draw() {
+            pctx.beginPath(); pctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+            pctx.fillStyle = 'rgba(' + (this.h === 190 ? '0,240,255' : '0,255,136') + ',' + this.a + ')';
+            pctx.fill();
+            pctx.shadowBlur = 6;
+            pctx.shadowColor = this.h === 190 ? 'rgba(0,240,255,.12)' : 'rgba(0,255,136,.12)';
+        }
+    }
+
+    for (let i = 0; i < PCOUNT; i++) particles.push(new P());
+
+    function animParticles() {
+        pctx.clearRect(0, 0, pw, ph);
+
+        // connections
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const d = Math.sqrt(dx*dx + dy*dy);
+                if (d < MAXD) {
+                    pctx.beginPath(); pctx.moveTo(particles[i].x, particles[i].y);
+                    pctx.lineTo(particles[j].x, particles[j].y);
+                    pctx.strokeStyle = 'rgba(0,240,255,' + ((1 - d/MAXD) * .12) + ')';
+                    pctx.lineWidth = .5; pctx.stroke();
+                }
+            }
+        }
+
+        // mouse connections
+        if (mx > 0) {
+            for (let p of particles) {
+                const dx = p.x - mx; const dy = p.y - my;
+                const d = Math.sqrt(dx*dx + dy*dy);
+                if (d < 250) {
+                    pctx.beginPath(); pctx.moveTo(p.x, p.y); pctx.lineTo(mx, my);
+                    pctx.strokeStyle = 'rgba(0,255,136,' + ((1 - d/250) * .2) + ')';
+                    pctx.lineWidth = .5; pctx.stroke();
+                }
+            }
+        }
+
+        for (let p of particles) { p.update(); p.draw(); pctx.shadowBlur = 0; }
+        requestAnimationFrame(animParticles);
+    }
+    animParticles();
+
+    // ===== CURSOR GLOW =====
+    const cg = document.getElementById('cursor-glow');
+    document.addEventListener('mousemove', function(e) {
+        cg.style.left = e.clientX + 'px';
+        cg.style.top = e.clientY + 'px';
+    });
+
+    // ===== RIPPLE =====
+    document.getElementById('ripples');
+    document.addEventListener('click', function(e) {
+        const el = document.createElement('div');
+        el.className = 'ripple-el';
+        el.style.left = (e.clientX - 125) + 'px';
+        el.style.top = (e.clientY - 125) + 'px';
+        document.getElementById('ripples').appendChild(el);
+        setTimeout(function() { el.remove(); }, 700);
+
+        // screen shake
+        document.body.style.animation = 'shake .4s';
+        setTimeout(function() { document.body.style.animation = ''; }, 400);
+    });
+
+    // ===== SCROLL REVEAL + TYPEWRITER HEADINGS =====
+    const sections = document.querySelectorAll('.section');
+    const headingTexts = new Map();
+
+    sections.forEach(function(s) {
+        const h2 = s.querySelector('h2 .title-glow');
+        if (h2) {
+            headingTexts.set(s, h2.textContent);
+            h2.textContent = '';
+            const cursor = document.createElement('span');
+            cursor.className = 'type-cursor';
+            h2.appendChild(cursor);
+            h2.dataset.target = headingTexts.get(s);
+            h2.dataset.typed = 'false';
+        }
+    });
+
+    function typeHeading(s) {
+        const h2 = s.querySelector('h2 .title-glow');
+        if (!h2 || h2.dataset.typed === 'true') return;
+        h2.dataset.typed = 'true';
+        const target = h2.dataset.target;
+        const cursor = h2.querySelector('.type-cursor');
+        h2.textContent = '';
+        let i = 0;
+        function type() {
+            if (i < target.length) {
+                h2.textContent = target.substring(0, i + 1);
+                if (cursor) h2.appendChild(cursor);
+                i++;
+                setTimeout(type, 25 + Math.random() * 20);
+            }
+        }
+        type();
+    }
+
+    function checkVisibility() {
+        for (let s of sections) {
+            const rect = s.getBoundingClientRect();
+            if (rect.top < window.innerHeight - 50 && rect.bottom > 0) {
+                if (!s.classList.contains('visible')) {
+                    s.classList.add('visible');
+                    s.style.animation = 'fade-up .5s ease-out forwards';
+                    setTimeout(function() { typeHeading(s); }, 300);
+                }
+            }
+        }
+    }
+    window.addEventListener('scroll', checkVisibility);
+    checkVisibility();
+
+    // ===== TYPEWRITER TIMING =====
+    const te = document.getElementById('typing-line');
+    if (te) {
+        const txt = te.textContent;
+        te.style.width = '0';
+        setTimeout(function() {
+            te.style.animation = 'typewriter 1.8s steps(' + txt.length + ') forwards, blink .8s step-end infinite';
+        }, 500);
+    }
+    // ===== 3D TILT =====
+    document.querySelectorAll('.section').forEach(function(s) {
+        s.addEventListener('mousemove', function(e) {
+            const r = this.getBoundingClientRect();
+            const x = e.clientX - r.left, y = e.clientY - r.top;
+            const rx = ((y - r.height/2) / r.height/2) * -2.5;
+            const ry = ((x - r.width/2) / r.width/2) * 2.5;
+            this.style.transform = 'perspective(1000px) rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
+        });
+        s.addEventListener('mouseleave', function() {
+            this.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+        });
+    });
+
+    // ===== LIVE CLOCK =====
+    function updateClock() {
+        const d = new Date();
+        const h = String(d.getUTCHours()).padStart(2,'0');
+        const m = String(d.getUTCMinutes()).padStart(2,'0');
+        const s = String(d.getUTCSeconds()).padStart(2,'0');
+        document.getElementById('clock-display').textContent = h + ':' + m + ':' + s;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ===== TEXT SCRAMBLE ON TITLE =====
+    const titleEl = document.getElementById('title-main');
+    if (titleEl) {
+        const original = 'J.A.R.V.I.S';
+        const chars = '!@#$%^&*<>/?.JARVIS0123456789';
+        let scrambles = 0;
+        function scramble() {
+            if (scrambles > 8) { titleEl.textContent = original; return; }
+            let result = '';
+            for (let i = 0; i < original.length; i++) {
+                if (original[i] === '.') result += '.';
+                else result += chars[Math.floor(Math.random() * chars.length)];
+            }
+            titleEl.textContent = result;
+            scrambles++;
+            setTimeout(scramble, 50 + scrambles * 10);
+        }
+        setTimeout(scramble, 1200);
+    }
+})();
+</script>
+</body>
+</html>

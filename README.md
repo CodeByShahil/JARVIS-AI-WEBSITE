@@ -1,13 +1,13 @@
 <div align="center">
-  <img src="screenshots/logo.svg" width="50" alt="JARVIS Logo">
+  <img src="./screenshots/logo.svg" width="50" alt="JARVIS Logo">
   <h1>J.A.R.V.I.S AI Assistant</h1>
   <p><b>Just A Rather Very Intelligent System</b></p>
   <p><i>Your Personal AI-Powered Desktop Assistant for Windows</i></p>
 
   <p>
-    <a href="https://github.com/codebyshahil/JARVIS-AI/releases"><img src="https://img.shields.io/badge/Version-1.0.0-00f0ff?style=for-the-badge&logo=github" alt="Version"></a>
-    <a href="https://github.com/codebyshahil/JARVIS-AI/releases"><img src="https://img.shields.io/badge/Platform-Windows_10|11-00ff88?style=for-the-badge&logo=windows" alt="Platform"></a>
-    <img src="https://img.shields.io/badge/AI-Ollama_(Local)-8833ff?style=for-the-badge&logo=ollama" alt="AI Engine">
+    <img src="https://img.shields.io/badge/Version-1.0.0-00f0ff?style=for-the-badge" alt="Version">
+    <img src="https://img.shields.io/badge/Platform-Windows_10|11-00ff88?style=for-the-badge&logo=windows" alt="Platform">
+    <img src="https://img.shields.io/badge/AI-Local_LLM-8833ff?style=for-the-badge" alt="AI Engine">
     <img src="https://img.shields.io/badge/License-Commercial-ff2277?style=for-the-badge" alt="License">
     <img src="https://img.shields.io/badge/Build-PyInstaller-ffcc44?style=for-the-badge" alt="Build">
   </p>
@@ -16,8 +16,9 @@
     <a href="#features">Features</a> •
     <a href="#screenshots">Screenshots</a> •
     <a href="#quick-start">Quick Start</a> •
-    <a href="#pricing">Pricing</a> •
-    <a href="#documentation">Documentation</a> •
+    <a href="#changelog">Changelog</a> •
+    <a href="#security">Security</a> •
+    <a href="#license">License</a> •
     <a href="#contact">Contact</a>
   </p>
 
@@ -27,7 +28,7 @@
 
   <br>
 
-  <img src="screenshots/dashboard.png" width="900" alt="JARVIS Dashboard">
+  <img src="./screenshots/dashboard.png" width="900" alt="JARVIS Dashboard">
 
   <br>
 </div>
@@ -36,7 +37,7 @@
 
 ## Overview
 
-J.A.R.V.I.S is a **commercial desktop AI voice assistant** for Windows that runs **fully offline** using Ollama for local AI inference. No cloud APIs, no data collection, no subscriptions — just a powerful, private AI assistant on your machine.
+J.A.R.V.I.S is a **commercial desktop AI voice assistant** for Windows that runs **fully offline** using local LLM inference. No cloud APIs, no data collection, no subscriptions — just a powerful, private AI assistant on your machine.
 
 It combines natural voice conversations with deep system automation, web tools, productivity features, and a stunning futuristic interface.
 
@@ -51,7 +52,7 @@ It combines natural voice conversations with deep system automation, web tools, 
 - AI-powered natural conversations
 - 5-layer NLU engine (lexical, syntactic, semantic, discourse, pragmatic)
 - Context-aware responses with session memory
-- Local inference via Ollama (default: `llama3.2`)
+- Local inference via local LLM (Ollama compatible)
 - No cloud dependency — 100% private
 - Smart command processing and intent classification
 - AI writing assistant (essays, poems, letters, stories)
@@ -133,16 +134,16 @@ It combines natural voice conversations with deep system automation, web tools, 
 <div align="center">
   <table>
     <tr>
-      <td><img src="screenshots/main.png" width="400" alt="Main Dashboard"></td>
-      <td><img src="screenshots/chat.png" width="400" alt="AI Chat"></td>
+      <td><img src="./screenshots/main.png" width="400" alt="Main Dashboard"></td>
+      <td><img src="./screenshots/chat.png" width="400" alt="AI Chat"></td>
     </tr>
     <tr>
       <td><b>Main Dashboard</b></td>
       <td><b>AI Chat Interface</b></td>
     </tr>
     <tr>
-      <td><img src="screenshots/voice.png" width="400" alt="Voice Assistant"></td>
-      <td><img src="screenshots/dashboard.png" width="400" alt="Dashboard"></td>
+      <td><img src="./screenshots/voice.png" width="400" alt="Voice Assistant"></td>
+      <td><img src="./screenshots/dashboard.png" width="400" alt="Dashboard"></td>
     </tr>
     <tr>
       <td><b>Voice Assistant</b></td>
@@ -164,21 +165,16 @@ It combines natural voice conversations with deep system automation, web tools, 
 | **Storage** | 2 GB free | SSD, 4 GB+ free |
 | **Network** | Internet (initial setup) | Stable broadband |
 | **Audio** | Speakers | Microphone + Speakers |
-| **AI** | Ollama installed | GPU with 4 GB+ VRAM |
+| **AI** | Local LLM (optional) | GPU with 4 GB+ VRAM |
 
 ### Installation
 
-1. **Purchase a license** at the [Releases page](https://github.com/codebyshahil/JARVIS-AI/releases)
-2. **Download** the latest `J.A.R.V.I.S_v1.0.0.exe`
-3. **Install Ollama** from [ollama.com](https://ollama.com) and pull a model:
-   ```bash
-   ollama pull llama3.2
-   ```
-4. **Run** `J.A.R.V.I.S.exe`
-5. **Enter** your license key
-6. **Start** using your AI assistant
+1. **Purchase a license** and download the latest `J.A.R.V.I.S_v1.0.0.exe`
+2. **Run** `J.A.R.V.I.S.exe`
+3. **Enter** your license key
+4. **Start** using your AI assistant
 
-> The full detailed guide is available in the [User Manual](https://codebyshahil.github.io/JARVIS-AI/help/jarvis_help.html).
+> The full detailed guide is available in the [User Manual](https://codebyshahil.github.io/JARVIS-AI-WEBSITE/jarvis_help.html).
 
 ---
 
@@ -240,11 +236,9 @@ It combines natural voice conversations with deep system automation, web tools, 
 | Resource | Link |
 |----------|------|
 | **Official Website** | [codebyshahil.github.io/JARVIS-AI-WEBSITE](https://codebyshahil.github.io/JARVIS-AI-WEBSITE/) |
-| **User Manual** | [Open Guide →](https://codebyshahil.github.io/JARVIS-AI/help/jarvis_help.html) |
+| **User Manual** | [Open Guide →](https://codebyshahil.github.io/JARVIS-AI-WEBSITE/jarvis_help.html) |
 | **Quick Start Guide** | See above |
 | **Command Reference** | Included in the application |
-| **Changelog** | [CHANGELOG.md](CHANGELOG.md) |
-| **Security** | [SECURITY.md](SECURITY.md) |
 
 ---
 
@@ -284,7 +278,7 @@ It combines natural voice conversations with deep system automation, web tools, 
 |----------|------------|
 | **Language** | Python 3.10+ |
 | **UI Framework** | CustomTkinter |
-| **AI Inference** | Ollama (llama3.2) |
+| **AI Inference** | Local LLM (Ollama compatible) |
 | **Voice Input** | SpeechRecognition |
 | **Voice Output** | pyttsx3 / TTS |
 | **Desktop Automation** | PyAutoGUI |
@@ -300,10 +294,20 @@ It combines natural voice conversations with deep system automation, web tools, 
 
 ## Security & Privacy
 
-- **100% Local AI**: All conversations processed locally via Ollama
+- **100% Local AI**: All conversations processed locally on your machine
 - **No Telemetry**: Zero data collection or usage analytics
 - **No Cloud Dependency**: Core features work fully offline
 - **Environment Config**: Sensitive settings via env vars, never hardcoded
+- **Secure Activation**: License key validation with offline fallback
+- **Encrypted Storage**: Chat history and notes stored securely
+
+For more details, see [SECURITY.md](SECURITY.md).
+
+---
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a full list of releases, features, and fixes.
 
 ---
 
@@ -330,7 +334,7 @@ strictly prohibited.
 
 :globe_with_meridians: **Website**: [codebyshahil.github.io/JARVIS-AI-WEBSITE](https://codebyshahil.github.io/JARVIS-AI-WEBSITE/)
 
-:books: [User Manual](https://codebyshahil.github.io/JARVIS-AI/help/jarvis_help.html)
+:books: [User Manual](https://codebyshahil.github.io/JARVIS-AI-WEBSITE/jarvis_help.html)
 
 ---
 
