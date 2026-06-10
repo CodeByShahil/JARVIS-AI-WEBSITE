@@ -16,11 +16,6 @@ html,body{width:1920px;height:1080px;overflow:hidden;font-family:'Inter',sans-se
 .scanlines{position:fixed;inset:0;z-index:95;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px)}
 .scanlines::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.25) 100%);pointer-events:none}
 
-/* ===== GLITCH OVERLAY ===== */
-#glitchOverlay{position:fixed;inset:0;z-index:90;pointer-events:none;opacity:0;background:#000}
-#glitchOverlay.active{animation:glitchFlash .15s steps(2) forwards}
-@keyframes glitchFlash{0%{opacity:.8;transform:translate(-4px,0)skewX(2deg)}50%{opacity:.6;transform:translate(4px,0)skewX(-2deg)}100%{opacity:0;transform:translate(0,0)skewX(0)}}
-
 /* ===== GLITCH TEXT ===== */
 .glitch{position:relative;display:inline-block}
 .glitch::before,.glitch::after{content:attr(data-text);position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;pointer-events:none}
@@ -163,7 +158,6 @@ h2 .grad{background:linear-gradient(135deg,var(--purple),var(--cyan));-webkit-ba
 
 <div class="scanlines"></div>
 <canvas id="matrixCanvas"></canvas>
-<div id="glitchOverlay"></div>
 
 <!-- ===== SLIDE 1 — INIT + REVEAL ===== -->
 <div class="slide">
@@ -363,7 +357,7 @@ h2 .grad{background:linear-gradient(135deg,var(--purple),var(--cyan));-webkit-ba
 var slides=document.querySelectorAll('.slide'),total=slides.length,cur=0;
 var slideDuration=3000;
 var matrixCanvas=document.getElementById('matrixCanvas'),mcCtx=matrixCanvas.getContext('2d');
-var glitchOverlay=document.getElementById('glitchOverlay');
+
 
 // ===== MATRIX RAIN =====
 matrixCanvas.width=1920;matrixCanvas.height=1080;
@@ -388,13 +382,6 @@ setInterval(drawMatrix,50);
 function updateMatrix(n){
   var show=(n===5||n===1);
   matrixCanvas.style.opacity=show?'.15':'0';
-}
-
-// ===== GLITCH FLASH =====
-function glitchFlash(){
-  glitchOverlay.classList.remove('active');void glitchOverlay.offsetWidth;
-  glitchOverlay.classList.add('active');
-  setTimeout(function(){glitchOverlay.classList.remove('active');},200);
 }
 
 // ===== INIT SEQUENCE (Slide 1) =====
@@ -425,7 +412,7 @@ function runInitSequence(){
       var rev=document.getElementById('mainReveal');
       rev.style.display='flex';
       rev.style.opacity='0';rev.style.transition='opacity .8s';
-      setTimeout(function(){rev.style.opacity='1';glitchFlash();},30);
+      setTimeout(function(){rev.style.opacity='1';},30);
     },300);
   },3800);
 }
@@ -505,7 +492,6 @@ function goTo(n){
   updateMatrix(n);
   
   // Trigger effects per slide
-  if(n===2){setTimeout(function(){glitchFlash();},800);}
   if(n===7){setTimeout(function(){typeCodeSlide8();},500);}
 }
 
