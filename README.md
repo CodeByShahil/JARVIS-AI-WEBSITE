@@ -134,7 +134,7 @@ It combines natural voice conversations with deep system automation, web tools, 
 <div align="center">
   <table>
     <tr>
-      <td><img src="./screenshots/main.png" width="400" alt="Main Dashboard"></td>
+      <td><img src="./screenshots/dashboard.png" width="400" alt="Main Dashboard"></td>
       <td><img src="./screenshots/chat.png" width="400" alt="AI Chat"></td>
     </tr>
     <tr>
